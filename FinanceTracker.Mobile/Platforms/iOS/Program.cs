@@ -1,7 +1,7 @@
 ﻿using ObjCRuntime;
 using UIKit;
 
-namespace FinanceTracker.Mobile
+namespace FinanceTracker.Mobile.Platforms.iOS
 {
     public class Program
     {

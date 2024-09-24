@@ -1,7 +1,7 @@
 ﻿using ObjCRuntime;
 using UIKit;
 
-namespace FinanceTracker.Mobile
+namespace FinanceTracker.Mobile.Platforms.MacCatalyst
 {
     public class Program
     {

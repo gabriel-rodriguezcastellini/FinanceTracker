@@ -1,4 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using FinanceTracker.Core.Services;
+using FinanceTracker.Data;
+using FinanceTracker.Data.Repositories;
+using FinanceTracker.Mobile.ViewModels;
+using FinanceTracker.Mobile.Views;
 
 namespace FinanceTracker.Mobile
 {
@@ -6,19 +10,20 @@ namespace FinanceTracker.Mobile
     {
         public static MauiApp CreateMauiApp()
         {
-            var builder = MauiApp.CreateBuilder();
-            builder
+            MauiAppBuilder builder = MauiApp.CreateBuilder();
+            _ = builder
                 .UseMauiApp<App>()
                 .ConfigureFonts(fonts =>
                 {
-                    fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-                    fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                    _ = fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+                    _ = fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 });
 
-#if DEBUG
-    		builder.Logging.AddDebug();
-#endif
-
+            _ = builder.Services.AddDbContext<FinanceTrackerDbContext>();
+            _ = builder.Services.AddSingleton<ITransactionRepository, TransactionRepository>();
+            _ = builder.Services.AddSingleton<ITransactionService, TransactionService>();
+            _ = builder.Services.AddSingleton<TransactionsViewModel>();
+            _ = builder.Services.AddSingleton<MainPage>();
             return builder.Build();
         }
     }

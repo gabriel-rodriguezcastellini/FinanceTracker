@@ -1,6 +1,6 @@
 ﻿using Foundation;
 
-namespace FinanceTracker.Mobile
+namespace FinanceTracker.Mobile.Platforms.iOS
 {
     [Register("AppDelegate")]
     public class AppDelegate : MauiUIApplicationDelegate
