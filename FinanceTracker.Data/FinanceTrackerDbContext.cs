@@ -16,12 +16,6 @@ namespace FinanceTracker.Data
         {
             _ = optionsBuilder.UseSqlite($"Filename={Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FinanceTracker.db")}");
         }
-
-        //protected override void OnModelCreating(ModelBuilder modelBuilder)
-        //{
-        //    _ = modelBuilder.Entity<Transaction>().Property(t => t.Amount).HasPrecision(18, 2);
-        //    base.OnModelCreating(modelBuilder);
-        //}
     }
 }
 

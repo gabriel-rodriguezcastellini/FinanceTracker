@@ -1,5 +1,6 @@
 ﻿using FinanceTracker.Data.Repositories;
 using FinanceTracker.Shared.Models;
+using Microsoft.Extensions.Logging;
 
 namespace FinanceTracker.Core.Services
 {
@@ -9,18 +10,17 @@ namespace FinanceTracker.Core.Services
         Task AddTransactionAsync(Transaction transaction);
     }
 
-    public class TransactionService(ITransactionRepository repository) : ITransactionService
+    public class TransactionService(ITransactionRepository repository, ILogger<TransactionService> logger) : ITransactionService
     {
-        private readonly ITransactionRepository _repository = repository;
-
         public async Task<IEnumerable<Transaction>> GetTransactionsAsync()
         {
-            return await _repository.GetTransactionsAsync();
+            return await repository.GetTransactionsAsync();
         }
 
         public async Task AddTransactionAsync(Transaction transaction)
         {
-            await _repository.AddTransactionAsync(transaction);
+            logger.LogInformation("Adding transaction: {Transaction}", transaction);
+            await repository.AddTransactionAsync(transaction);
         }
     }
 }

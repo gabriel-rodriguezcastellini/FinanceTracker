@@ -3,6 +3,7 @@ using FinanceTracker.Data;
 using FinanceTracker.Data.Repositories;
 using FinanceTracker.Mobile.ViewModels;
 using FinanceTracker.Mobile.Views;
+using Microsoft.Extensions.Logging;
 
 namespace FinanceTracker.Mobile
 {
@@ -18,6 +19,10 @@ namespace FinanceTracker.Mobile
                     _ = fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                     _ = fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 });
+
+#if DEBUG
+            builder.Logging.AddDebug();
+#endif
 
             _ = builder.Services.AddDbContext<FinanceTrackerDbContext>();
             _ = builder.Services.AddSingleton<ITransactionRepository, TransactionRepository>();
