@@ -1,14 +1,17 @@
-﻿using FinanceTracker.Data;
-using Microsoft.EntityFrameworkCore;
+﻿using FinanceTracker.Data.Repositories;
 
 namespace FinanceTracker.Mobile
 {
     public partial class App : Application
     {
-        public App(FinanceTrackerDbContext financeTrackerDbContext)
+        public static ITransactionRepository? TransactionRepository { get; private set; }
+
+        public App(ITransactionRepository transactionRepository)
         {
             InitializeComponent();
-            financeTrackerDbContext.Database.Migrate();
+
+            TransactionRepository = transactionRepository;
+
             MainPage = new AppShell();
         }
     }
