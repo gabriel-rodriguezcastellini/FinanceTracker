@@ -15,6 +15,9 @@ namespace FinanceTracker.Shared.Models
 
         public DateTime Date { get; set; }
 
-        public required string Category { get; set; }
+        [Required]
+        public int CategoryId { get; set; }
+
+        public Category Category { get; set; } = null!;
     }
 }

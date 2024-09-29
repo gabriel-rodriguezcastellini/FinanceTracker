@@ -13,7 +13,8 @@ namespace FinanceTracker.Data.Repositories
     {
         public async Task<IEnumerable<Transaction>> GetTransactionsAsync()
         {
-            return await context.Transactions.ToListAsync();
+            List<Transaction> transactions = await context.Transactions.ToListAsync();
+            return transactions.OrderByDescending(t => t.Date);
         }
 
         public async Task AddTransactionAsync(Transaction transaction)

@@ -56,4 +56,12 @@
 		</PackageReference>
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Compile Update="Views\ChartPage.xaml.cs">
+	    <DependentUpon>ChartPage.xaml</DependentUpon>
+	  </Compile>
+	</ItemGroup>
+
+	<ProjectExtensions><VisualStudio><UserProperties XamarinHotReloadDebuggerTimeoutExceptionFinanceTrackerMobileHideInfoBar="True" /></VisualStudio></ProjectExtensions>
+
 </Project>

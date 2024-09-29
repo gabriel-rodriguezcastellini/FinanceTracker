@@ -2,20 +2,18 @@ using FinanceTracker.Mobile.ViewModels;
 
 namespace FinanceTracker.Mobile.Views
 {
-    public partial class ChartsPage : ContentPage
+    public partial class ChartPage : ContentPage
     {
-        private readonly ChartsViewModel _viewModel;
+        private readonly ChartViewModel _viewModel;
 
-        public ChartsPage()
+        public ChartPage()
         {
             InitializeComponent();
             if (App.TransactionRepository == null)
             {
-#pragma warning disable S3928 // Parameter names used into ArgumentException constructors should match an existing one 
                 throw new ArgumentNullException("App.TransactionRepository", "TransactionRepository cannot be null");
-#pragma warning restore S3928 // Parameter names used into ArgumentException constructors should match an existing one 
             }
-            _viewModel = new ChartsViewModel(App.TransactionRepository);
+            _viewModel = new ChartViewModel(App.TransactionRepository);
             BindingContext = _viewModel;
         }
 

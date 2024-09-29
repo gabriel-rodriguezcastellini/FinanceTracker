@@ -4,14 +4,14 @@ using SkiaSharp;
 
 namespace FinanceTracker.Mobile.ViewModels
 {
-    public class ChartsViewModel : BaseViewModel
+    public class ChartViewModel : BaseViewModel
     {
         private readonly ITransactionRepository _transactionRepository;
 
-        public ChartsViewModel(ITransactionRepository transactionRepository)
+        public ChartViewModel(ITransactionRepository transactionRepository)
         {
             _transactionRepository = transactionRepository;
-            _chart = new BarChart();
+            _chart = new PieChart();
             _ = LoadChartDataAsync().ConfigureAwait(false);
         }
 
@@ -30,30 +30,30 @@ namespace FinanceTracker.Mobile.ViewModels
                 .Select(g => new { Category = g.Key, Amount = g.Sum(t => t.Amount) })
                 .ToList();
 
+            decimal totalAmount = groupedData.Sum(data => data.Amount);
+
             List<ChartEntry> entries = groupedData.Select(data => new ChartEntry((float)data.Amount)
             {
-                Label = data.Category,
-                ValueLabel = data.Amount.ToString("C"),
-                Color = SKColor.Parse("#266489")
+                Label = data.Category.Name,
+                ValueLabel = $"{data.Amount:C} ({data.Amount / totalAmount * 100:F2}%)",
+                Color = GenerateColor(data.Category.Name)
             }).ToList();
 
-            if (entries.Count == 0)
-            {
-                Console.WriteLine("No data to display in the chart.");
-            }
-            else
-            {
-                Console.WriteLine($"Loaded {entries.Count} entries for the chart.");
-            }
-
-            Chart = new BarChart
+            Chart = new PieChart
             {
                 Entries = entries,
                 LabelTextSize = 30,
-                ValueLabelOrientation = Orientation.Horizontal,
-                LabelOrientation = Orientation.Horizontal,
                 Margin = 20
             };
+        }
+
+        private static SKColor GenerateColor(string categoryName)
+        {
+            int hash = categoryName.GetHashCode();
+            byte r = (byte)((hash & 0xFF0000) >> 16);
+            byte g = (byte)((hash & 0x00FF00) >> 8);
+            byte b = (byte)(hash & 0x0000FF);
+            return new SKColor(r, g, b);
         }
     }
 }

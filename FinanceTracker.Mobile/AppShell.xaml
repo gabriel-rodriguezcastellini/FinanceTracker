@@ -6,6 +6,6 @@
 
     <TabBar>
         <ShellContent Title="Transactions" ContentTemplate="{DataTemplate local:MainPage}" />
-        <ShellContent Title="Charts" ContentTemplate="{DataTemplate local:ChartsPage}" />
+        <ShellContent Title="Chart" ContentTemplate="{DataTemplate local:ChartPage}" />
     </TabBar>
 </Shell>

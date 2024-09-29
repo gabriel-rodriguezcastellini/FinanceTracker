@@ -5,12 +5,8 @@ namespace FinanceTracker.Data
 {
     public class FinanceTrackerDbContext : DbContext
     {
-        public FinanceTrackerDbContext()
-        {
-
-        }
-
         public DbSet<Transaction> Transactions { get; set; }
+        public DbSet<Category> Categories { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -18,4 +14,3 @@ namespace FinanceTracker.Data
         }
     }
 }
-
