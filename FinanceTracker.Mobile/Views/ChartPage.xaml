@@ -1,14 +1,17 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:FinanceTracker.Mobile.Views"
              xmlns:microcharts="clr-namespace:Microcharts.Maui;assembly=Microcharts.Maui"
              x:Class="FinanceTracker.Mobile.Views.ChartPage">
-
-    <ContentPage.Content>
-        <ScrollView>
-            <StackLayout Padding="10">
-                <microcharts:ChartView Chart="{Binding Chart}" HeightRequest="200" />
-            </StackLayout>
-        </ScrollView>
-    </ContentPage.Content>
+    <StackLayout>
+        <Label Text="No transactions available."
+               IsVisible="{Binding HasTransactions, Converter={StaticResource InverseBooleanConverter}}"
+               HorizontalOptions="Center"
+               VerticalOptions="CenterAndExpand" />
+        <microcharts:ChartView Chart="{Binding Chart}"
+                               IsVisible="{Binding HasTransactions}"
+                               HorizontalOptions="FillAndExpand"
+                               VerticalOptions="FillAndExpand" />
+    </StackLayout>
 </ContentPage>

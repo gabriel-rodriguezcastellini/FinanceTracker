@@ -2,6 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>net8.0-android;net8.0-ios;net8.0-maccatalyst</TargetFrameworks>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net8.0-windows10.0.19041.0</TargetFrameworks>
 		<OutputType>Exe</OutputType>
 		<RootNamespace>FinanceTracker.Mobile</RootNamespace>
@@ -57,11 +58,15 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Compile Update="Views\ChartPage.xaml.cs">
-	    <DependentUpon>ChartPage.xaml</DependentUpon>
-	  </Compile>
+		<Compile Update="Views\ChartPage.xaml.cs">
+			<DependentUpon>ChartPage.xaml</DependentUpon>
+		</Compile>
 	</ItemGroup>
 
-	<ProjectExtensions><VisualStudio><UserProperties XamarinHotReloadDebuggerTimeoutExceptionFinanceTrackerMobileHideInfoBar="True" /></VisualStudio></ProjectExtensions>
+	<ProjectExtensions>
+		<VisualStudio>
+			<UserProperties XamarinHotReloadDebuggerTimeoutExceptionFinanceTrackerMobileHideInfoBar="True" />
+		</VisualStudio>
+	</ProjectExtensions>
 
 </Project>

@@ -4,7 +4,7 @@ using SkiaSharp;
 
 namespace FinanceTracker.Mobile.ViewModels
 {
-    public class ChartViewModel : BaseViewModel
+    public partial class ChartViewModel : BaseViewModel
     {
         private readonly ITransactionRepository _transactionRepository;
 
@@ -22,9 +22,23 @@ namespace FinanceTracker.Mobile.ViewModels
             set => SetProperty(ref _chart, value);
         }
 
+        private bool _hasTransactions;
+        public bool HasTransactions
+        {
+            get => _hasTransactions;
+            set => SetProperty(ref _hasTransactions, value);
+        }
+
         public async Task LoadChartDataAsync()
         {
             IEnumerable<Shared.Models.Transaction> transactions = await _transactionRepository.GetTransactionsAsync();
+            HasTransactions = transactions.Any();
+
+            if (!HasTransactions)
+            {
+                return;
+            }
+
             var groupedData = transactions
                 .GroupBy(t => t.Category)
                 .Select(g => new { Category = g.Key, Amount = g.Sum(t => t.Amount) })

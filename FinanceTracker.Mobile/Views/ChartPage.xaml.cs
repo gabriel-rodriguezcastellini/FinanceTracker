@@ -6,12 +6,12 @@ namespace FinanceTracker.Mobile.Views
     {
         private readonly ChartViewModel _viewModel;
 
-        public ChartPage()
+        public ChartPage(ChartViewModel viewModel)
         {
             InitializeComponent();
             if (App.TransactionRepository == null)
             {
-                throw new ArgumentNullException("App.TransactionRepository", "TransactionRepository cannot be null");
+                throw new ArgumentNullException("TransactionRepository", "TransactionRepository cannot be null");
             }
             _viewModel = new ChartViewModel(App.TransactionRepository);
             BindingContext = _viewModel;
