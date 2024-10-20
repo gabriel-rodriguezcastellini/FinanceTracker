@@ -4,6 +4,24 @@
              xmlns:local="clr-namespace:FinanceTracker.Mobile.Views"
              x:Class="FinanceTracker.Mobile.Views.MainPage">
 
+    <ContentPage.Resources>
+        <Style TargetType="Entry">
+            <Setter Property="TextColor" Value="Black" />
+            <Setter Property="BackgroundColor" Value="LightGray" />
+            <Setter Property="Margin" Value="0,5,0,5" />
+        </Style>
+        <Style TargetType="Picker">
+            <Setter Property="TextColor" Value="Black" />
+            <Setter Property="BackgroundColor" Value="LightGray" />
+            <Setter Property="Margin" Value="0,5,0,5" />
+        </Style>
+        <Style TargetType="Label">
+            <Setter Property="TextColor" Value="Black" />
+            <Setter Property="FontSize" Value="Medium" />
+            <Setter Property="Margin" Value="0,5,0,5" />
+        </Style>
+    </ContentPage.Resources>
+
     <VisualStateManager.VisualStateGroups>
         <VisualStateGroup>
             <VisualState x:Name="FormVisible">
@@ -27,15 +45,25 @@
 
     <ContentPage.Content>
         <AbsoluteLayout>
-            <CollectionView x:Name="TransactionsCollectionView" ItemsSource="{Binding Transactions}" AbsoluteLayout.LayoutBounds="0,0,1,1" AbsoluteLayout.LayoutFlags="All">
+            <CollectionView x:Name="TransactionsCollectionView" ItemsSource="{Binding Transactions}" SelectionMode="Single" SelectedItem="{Binding SelectedTransaction}" AbsoluteLayout.LayoutBounds="0,0,1,1" AbsoluteLayout.LayoutFlags="All">
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
-                        <StackLayout Padding="15" Margin="5">
-                            <Label Text="{Binding Description}" FontAttributes="Bold" VerticalOptions="Center" />
-                            <Label Text="{Binding Amount, StringFormat='{}{0:C}'}" VerticalOptions="Center" />
-                            <Label Text="{Binding Category.Name}" VerticalOptions="Center" />
-                            <Label Text="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm:ss}'}" VerticalOptions="Center" />
-                        </StackLayout>
+                        <SwipeView>
+                            <SwipeView.RightItems>
+                                <SwipeItems>
+                                    <SwipeItem Text="Edit"
+                                               BackgroundColor="LightGray"
+                                               Command="{Binding BindingContext.EditTransactionCommand, Source={x:Reference TransactionsCollectionView}}"
+                                               CommandParameter="{Binding .}" />
+                                </SwipeItems>
+                            </SwipeView.RightItems>
+                            <StackLayout>
+                                <Label Text="{Binding Description}" />
+                                <Label Text="{Binding Amount, StringFormat='{}{0:C}'}" />
+                                <Label Text="{Binding Date, StringFormat='{}{0:MM/dd/yyyy}'}" />
+                                <Label Text="{Binding Category.Name}" />
+                            </StackLayout>
+                        </SwipeView>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
@@ -48,13 +76,13 @@
                 <Entry Text="{Binding NewAmount}" Keyboard="Numeric" />
 
                 <Label Text="Category" />
-                <Picker ItemsSource="{Binding Categories}" 
-                        ItemDisplayBinding="{Binding Name}" 
-                        SelectedItem="{Binding SelectedCategory}" 
+                <Picker ItemsSource="{Binding Categories}"
+                        ItemDisplayBinding="{Binding Name}"
+                        SelectedItem="{Binding SelectedCategory}"
                         IsVisible="{Binding IsNewCategory, Converter={StaticResource InverseBooleanConverter}}" />
 
-                <Entry Text="{Binding NewCategory}" 
-                       Placeholder="New Category" 
+                <Entry Text="{Binding NewCategory}"
+                       Placeholder="New Category"
                        IsVisible="{Binding IsNewCategory}" />
 
                 <Grid ColumnDefinitions="Auto, *">
@@ -65,19 +93,10 @@
                 <Button Text="Add Transaction" Command="{Binding AddTransactionCommand}" />
             </StackLayout>
 
-            <Button Text="+" 
+            <Button Text="Add New Transaction"
                     Command="{Binding ToggleFormVisibilityCommand}"
-                    AbsoluteLayout.LayoutBounds="1,1,60,60"
-                    AbsoluteLayout.LayoutFlags="PositionProportional"
-                    WidthRequest="60"
-                    HeightRequest="60"
-                    Margin="20"
-                    CornerRadius="30" 
-                    BackgroundColor="Blue" 
-                    TextColor="White"
-                    FontSize="24"
-                    VerticalOptions="End"
-                    HorizontalOptions="End" />
+                    AbsoluteLayout.LayoutBounds="0.5,1,AutoSize,AutoSize"
+                    AbsoluteLayout.LayoutFlags="PositionProportional" />
         </AbsoluteLayout>
     </ContentPage.Content>
 </ContentPage>

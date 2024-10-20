@@ -7,6 +7,7 @@ namespace FinanceTracker.Data.Repositories
     {
         Task<IEnumerable<Transaction>> GetTransactionsAsync();
         Task AddTransactionAsync(Transaction transaction);
+        Task UpdateTransactionAsync(Transaction transaction);
     }
 
     public class TransactionRepository(FinanceTrackerDbContext context) : ITransactionRepository
@@ -20,6 +21,12 @@ namespace FinanceTracker.Data.Repositories
         public async Task AddTransactionAsync(Transaction transaction)
         {
             _ = await context.Transactions.AddAsync(transaction);
+            _ = await context.SaveChangesAsync();
+        }
+
+        public async Task UpdateTransactionAsync(Transaction transaction)
+        {
+            _ = context.Transactions.Update(transaction);
             _ = await context.SaveChangesAsync();
         }
     }

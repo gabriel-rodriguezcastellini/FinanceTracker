@@ -19,8 +19,7 @@ namespace FinanceTracker.Data.Repositories
 
         public async Task<Category?> GetCategoryByNameAsync(string categoryName)
         {
-            return await context.Categories
-                .FirstOrDefaultAsync(c => c.Name == categoryName);
+            return (await context.Categories.ToListAsync()).Find(c => c.Name == categoryName);
         }
 
         public async Task AddCategoryAsync(Category newCategory)

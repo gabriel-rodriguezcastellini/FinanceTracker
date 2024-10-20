@@ -8,6 +8,7 @@ namespace FinanceTracker.Core.Services
     {
         Task<IEnumerable<Transaction>> GetTransactionsAsync();
         Task AddTransactionAsync(Transaction transaction);
+        Task UpdateTransactionAsync(Transaction transaction);
     }
 
     public class TransactionService(ITransactionRepository repository, ILogger<TransactionService> logger) : ITransactionService
@@ -21,6 +22,12 @@ namespace FinanceTracker.Core.Services
         {
             logger.LogInformation("Adding transaction: {Transaction}", transaction);
             await repository.AddTransactionAsync(transaction);
+        }
+
+        public async Task UpdateTransactionAsync(Transaction transaction)
+        {
+            logger.LogInformation("Updating transaction: {Transaction}", transaction);
+            await repository.UpdateTransactionAsync(transaction);
         }
     }
 }

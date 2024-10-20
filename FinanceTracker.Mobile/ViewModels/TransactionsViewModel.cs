@@ -8,7 +8,7 @@ using System.Windows.Input;
 
 namespace FinanceTracker.Mobile.ViewModels
 {
-    public class TransactionsViewModel : INotifyPropertyChanged
+    public partial class TransactionsViewModel : INotifyPropertyChanged
     {
         private readonly ITransactionService _transactionService;
         private readonly ICategoryService _categoryService;
@@ -67,12 +67,15 @@ namespace FinanceTracker.Mobile.ViewModels
 
         public ICommand ToggleFormVisibilityCommand { get; }
 
+        public ICommand EditTransactionCommand { get; }
+
         public TransactionsViewModel(ITransactionService transactionService, ICategoryService categoryService, ExceptionLogger exceptionLogger)
         {
             _transactionService = transactionService;
             _categoryService = categoryService;
             _exceptionLogger = exceptionLogger;
             AddTransactionCommand = new Command(AddTransaction);
+            EditTransactionCommand = new Command<Transaction>(EditTransaction);
             ToggleFormVisibilityCommand = new Command(ToggleFormVisibility);
             _ = LoadTransactions();
             _ = LoadCategories();
@@ -116,6 +119,8 @@ namespace FinanceTracker.Mobile.ViewModels
                 await _transactionService.AddTransactionAsync(newTransaction);
                 Transactions.Insert(0, newTransaction);
 
+                await LoadCategories();
+
                 TransactionAdded?.Invoke(this, newTransaction);
 
                 NewDescription = string.Empty;
@@ -137,6 +142,28 @@ namespace FinanceTracker.Mobile.ViewModels
                 {
                     await Application.Current.MainPage.DisplayAlert("Error", ex.Message, "OK");
                 }
+            }
+            catch (Exception ex)
+            {
+                _exceptionLogger.LogException(ex);
+                if (Application.Current?.MainPage != null)
+                {
+                    await Application.Current.MainPage.DisplayAlert("Error", "An unexpected error occurred. Please try again.", "OK");
+                }
+            }
+        }
+
+        private async void EditTransaction(Transaction transaction)
+        {
+            try
+            {
+                await _transactionService.UpdateTransactionAsync(transaction);
+                int index = Transactions.IndexOf(transaction);
+                if (index >= 0)
+                {
+                    Transactions[index] = transaction;
+                }
+                TransactionAdded?.Invoke(this, transaction);
             }
             catch (Exception ex)
             {
