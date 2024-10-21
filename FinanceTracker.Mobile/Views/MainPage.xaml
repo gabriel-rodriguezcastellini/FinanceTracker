@@ -1,74 +1,88 @@
 ﻿<?xml version="1.0" encoding="UTF-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:local="clr-namespace:FinanceTracker.Mobile.Views"
-             x:Class="FinanceTracker.Mobile.Views.MainPage">
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             x:Class="FinanceTracker.Mobile.Views.MainPage"
+             BackgroundColor="{StaticResource BackgroundColor}">
 
     <ContentPage.Resources>
-        <Style TargetType="Entry">
-            <Setter Property="TextColor" Value="Black" />
-            <Setter Property="BackgroundColor" Value="LightGray" />
-            <Setter Property="Margin" Value="0,5,0,5" />
-        </Style>
-        <Style TargetType="Picker">
-            <Setter Property="TextColor" Value="Black" />
-            <Setter Property="BackgroundColor" Value="LightGray" />
-            <Setter Property="Margin" Value="0,5,0,5" />
-        </Style>
-        <Style TargetType="Label">
-            <Setter Property="TextColor" Value="Black" />
-            <Setter Property="FontSize" Value="Medium" />
-            <Setter Property="Margin" Value="0,5,0,5" />
-        </Style>
+        <ResourceDictionary>
+            <Color x:Key="BackgroundColor">#F0F0F0</Color>
+            <Color x:Key="TextColor">#333333</Color>
+            <Color x:Key="EntryBackgroundColor">#E0E0E0</Color>
+            <Color x:Key="PickerBackgroundColor">#E0E0E0</Color>
+            <Color x:Key="SwipeItemBackgroundColor">#CCCCCC</Color>
+            <Style TargetType="Label">
+                <Setter Property="TextColor" Value="{StaticResource TextColor}" />
+                <Setter Property="FontSize" Value="Medium" />
+                <Setter Property="Margin" Value="0,5,0,5" />
+            </Style>
+            <Style TargetType="Entry">
+                <Setter Property="TextColor" Value="{StaticResource TextColor}" />
+                <Setter Property="BackgroundColor" Value="{StaticResource EntryBackgroundColor}" />
+                <Setter Property="Margin" Value="0,5,0,5" />
+            </Style>
+            <Style TargetType="Picker">
+                <Setter Property="TextColor" Value="{StaticResource TextColor}" />
+                <Setter Property="BackgroundColor" Value="{StaticResource PickerBackgroundColor}" />
+                <Setter Property="Margin" Value="0,5,0,5" />
+            </Style>
+        </ResourceDictionary>
     </ContentPage.Resources>
 
-    <VisualStateManager.VisualStateGroups>
-        <VisualStateGroup>
-            <VisualState x:Name="FormVisible">
-                <VisualState.StateTriggers>
-                    <StateTrigger IsActive="{Binding IsFormVisible}" />
-                </VisualState.StateTriggers>
-                <VisualState.Setters>
-                    <Setter TargetName="FormOverlay" Property="IsVisible" Value="True" />
-                </VisualState.Setters>
-            </VisualState>
-            <VisualState x:Name="FormHidden">
-                <VisualState.StateTriggers>
-                    <StateTrigger IsActive="{Binding IsFormVisible, Converter={StaticResource InverseBooleanConverter}}" />
-                </VisualState.StateTriggers>
-                <VisualState.Setters>
-                    <Setter TargetName="FormOverlay" Property="IsVisible" Value="False" />
-                </VisualState.Setters>
-            </VisualState>
-        </VisualStateGroup>
-    </VisualStateManager.VisualStateGroups>
-
     <ContentPage.Content>
-        <AbsoluteLayout>
-            <CollectionView x:Name="TransactionsCollectionView" ItemsSource="{Binding Transactions}" SelectionMode="Single" SelectedItem="{Binding SelectedTransaction}" AbsoluteLayout.LayoutBounds="0,0,1,1" AbsoluteLayout.LayoutFlags="All">
+        <Grid Padding="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Button Text="Add New Transaction"
+                    Command="{Binding ToggleFormVisibilityCommand}"
+                    Grid.Row="0"
+                    HorizontalOptions="Center"
+                    VerticalOptions="Center" />
+
+            <CollectionView x:Name="TransactionsCollectionView"
+                ItemsSource="{Binding Transactions}"
+                SelectionMode="None"
+                Grid.Row="1"
+                Margin="10">
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
                         <SwipeView>
                             <SwipeView.RightItems>
                                 <SwipeItems>
                                     <SwipeItem Text="Edit"
-                                               BackgroundColor="LightGray"
-                                               Command="{Binding BindingContext.EditTransactionCommand, Source={x:Reference TransactionsCollectionView}}"
-                                               CommandParameter="{Binding .}" />
+                                   BackgroundColor="{StaticResource SwipeItemBackgroundColor}"
+                                   Command="{Binding BindingContext.EditTransactionCommand, Source={x:Reference TransactionsCollectionView}}"
+                                   CommandParameter="{Binding .}" />
                                 </SwipeItems>
                             </SwipeView.RightItems>
-                            <StackLayout>
-                                <Label Text="{Binding Description}" />
-                                <Label Text="{Binding Amount, StringFormat='{}{0:C}'}" />
-                                <Label Text="{Binding Date, StringFormat='{}{0:MM/dd/yyyy}'}" />
-                                <Label Text="{Binding Category.Name}" />
-                            </StackLayout>
+                            <Grid Padding="10"
+                      BackgroundColor="{StaticResource BackgroundColor}"
+                      Margin="0,5,0,5"
+                      RowDefinitions="Auto,Auto,Auto,Auto"
+                      ColumnDefinitions="Auto,*">
+                                <Label Grid.Row="0" Grid.Column="0" Text="Description: " FontAttributes="Bold" />
+                                <Label Grid.Row="0" Grid.Column="1" Text="{Binding Description}" />
+                                <Label Grid.Row="1" Grid.Column="0" Text="Amount: " FontAttributes="Bold" />
+                                <Label Grid.Row="1" Grid.Column="1" Text="{Binding Amount, StringFormat='{}{0:C}'}" />
+                                <Label Grid.Row="2" Grid.Column="0" Text="Date: " FontAttributes="Bold" />
+                                <Label Grid.Row="2" Grid.Column="1" Text="{Binding Date, StringFormat='{}{0:MM/dd/yyyy hh:mm:ss tt}'}" />
+                                <Label Grid.Row="3" Grid.Column="0" Text="Category: " FontAttributes="Bold" />
+                                <Label Grid.Row="3" Grid.Column="1" Text="{Binding Category.Name}" />
+                            </Grid>
                         </SwipeView>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
 
-            <StackLayout x:Name="FormOverlay" Padding="10" BackgroundColor="White" AbsoluteLayout.LayoutBounds="0,0,1,1" AbsoluteLayout.LayoutFlags="All" IsVisible="{Binding IsFormVisible}">
+            <StackLayout x:Name="FormOverlay"
+                         Padding="10"
+                         BackgroundColor="White"
+                         Grid.RowSpan="2"
+                         IsVisible="{Binding IsFormVisible}">
                 <Label Text="Description" />
                 <Entry Text="{Binding NewDescription}" />
 
@@ -92,11 +106,6 @@
 
                 <Button Text="Add Transaction" Command="{Binding AddTransactionCommand}" />
             </StackLayout>
-
-            <Button Text="Add New Transaction"
-                    Command="{Binding ToggleFormVisibilityCommand}"
-                    AbsoluteLayout.LayoutBounds="0.5,1,AutoSize,AutoSize"
-                    AbsoluteLayout.LayoutFlags="PositionProportional" />
-        </AbsoluteLayout>
+        </Grid>
     </ContentPage.Content>
 </ContentPage>
