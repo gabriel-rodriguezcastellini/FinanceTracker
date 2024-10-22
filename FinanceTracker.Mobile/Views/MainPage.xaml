@@ -104,7 +104,10 @@
                     <Label Text="Add New Category" VerticalOptions="Center" Grid.Column="1" />
                 </Grid>
 
-                <Button Text="Add Transaction" Command="{Binding AddTransactionCommand}" />
+                <HorizontalStackLayout Spacing="10">
+                    <Button Text="Add Transaction" Command="{Binding AddTransactionCommand}" HorizontalOptions="FillAndExpand" />
+                    <Button Text="Cancel" Command="{Binding ToggleFormVisibilityCommand}" HorizontalOptions="FillAndExpand" />
+                </HorizontalStackLayout>
             </StackLayout>
         </Grid>
     </ContentPage.Content>
