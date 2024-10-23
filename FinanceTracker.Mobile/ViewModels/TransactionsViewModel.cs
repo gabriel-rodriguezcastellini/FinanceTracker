@@ -102,6 +102,42 @@ namespace FinanceTracker.Mobile.ViewModels
 
         private async void AddTransaction()
         {
+            if (string.IsNullOrWhiteSpace(NewDescription))
+            {
+                if (Application.Current?.MainPage != null)
+                {
+                    await Application.Current.MainPage.DisplayAlert("Validation Error", "Description is required.", "OK");
+                }
+                return;
+            }
+
+            if (NewAmount <= 0)
+            {
+                if (Application.Current?.MainPage != null)
+                {
+                    await Application.Current.MainPage.DisplayAlert("Validation Error", "Amount must be greater than zero.", "OK");
+                }
+                return;
+            }
+
+            if (IsNewCategory && string.IsNullOrWhiteSpace(NewCategory))
+            {
+                if (Application.Current?.MainPage != null)
+                {
+                    await Application.Current.MainPage.DisplayAlert("Validation Error", "New category name is required.", "OK");
+                }
+                return;
+            }
+
+            if (!IsNewCategory && SelectedCategory == null)
+            {
+                if (Application.Current?.MainPage != null)
+                {
+                    await Application.Current.MainPage.DisplayAlert("Validation Error", "Category must be selected.", "OK");
+                }
+                return;
+            }
+
             try
             {
                 Category category = IsNewCategory
