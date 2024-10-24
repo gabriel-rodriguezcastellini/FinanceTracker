@@ -17,6 +17,8 @@ namespace FinanceTracker.Mobile.ViewModels
         private ObservableCollection<Category> _categories = [];
         private bool _isNewCategory;
         private bool _isFormVisible;
+        private DateTime? _selectedDate;
+        private TimeSpan? _selectedTime;
 
         public ObservableCollection<Transaction> Transactions
         {
@@ -59,6 +61,26 @@ namespace FinanceTracker.Mobile.ViewModels
             set
             {
                 _isFormVisible = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public DateTime? SelectedDate
+        {
+            get => _selectedDate;
+            set
+            {
+                _selectedDate = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public TimeSpan? SelectedTime
+        {
+            get => _selectedTime;
+            set
+            {
+                _selectedTime = value;
                 OnPropertyChanged();
             }
         }
@@ -138,17 +160,37 @@ namespace FinanceTracker.Mobile.ViewModels
                 return;
             }
 
+            if (SelectedDate == null)
+            {
+                if (Application.Current?.MainPage != null)
+                {
+                    await Application.Current.MainPage.DisplayAlert("Validation Error", "Date is required.", "OK");
+                }
+                return;
+            }
+
+            if (SelectedTime == null)
+            {
+                if (Application.Current?.MainPage != null)
+                {
+                    await Application.Current.MainPage.DisplayAlert("Validation Error", "Time is required.", "OK");
+                }
+                return;
+            }
+
             try
             {
                 Category category = IsNewCategory
                     ? await _categoryService.GetOrCreateCategoryAsync(NewCategory)
                     : SelectedCategory ?? throw new InvalidOperationException("No category selected");
 
+                DateTime transactionDateTime = SelectedDate.Value.Date + SelectedTime.Value;
+
                 Transaction newTransaction = new()
                 {
                     Description = NewDescription,
                     Amount = NewAmount,
-                    Date = DateTime.Now,
+                    Date = transactionDateTime,
                     Category = category
                 };
 
@@ -164,11 +206,16 @@ namespace FinanceTracker.Mobile.ViewModels
                 NewCategory = string.Empty;
                 SelectedCategory = null;
                 IsNewCategory = false;
+                SelectedDate = null;
+                SelectedTime = null;
                 OnPropertyChanged(nameof(NewDescription));
                 OnPropertyChanged(nameof(NewAmount));
                 OnPropertyChanged(nameof(NewCategory));
                 OnPropertyChanged(nameof(SelectedCategory));
                 OnPropertyChanged(nameof(IsNewCategory));
+                OnPropertyChanged(nameof(SelectedDate));
+                OnPropertyChanged(nameof(SelectedTime));
+
                 IsFormVisible = false;
             }
             catch (InvalidOperationException ex)
@@ -211,7 +258,7 @@ namespace FinanceTracker.Mobile.ViewModels
             }
         }
 
-        public event PropertyChangedEventHandler? PropertyChanged = delegate { };
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {

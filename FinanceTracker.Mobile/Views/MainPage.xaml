@@ -2,6 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:controls="clr-namespace:FinanceTracker.Mobile.Controls"
              x:Class="FinanceTracker.Mobile.Views.MainPage"
              BackgroundColor="{StaticResource BackgroundColor}">
 
@@ -69,7 +70,7 @@
                                 <Label Grid.Row="1" Grid.Column="0" Text="Amount: " FontAttributes="Bold" />
                                 <Label Grid.Row="1" Grid.Column="1" Text="{Binding Amount, StringFormat='{}{0:C}'}" />
                                 <Label Grid.Row="2" Grid.Column="0" Text="Date: " FontAttributes="Bold" />
-                                <Label Grid.Row="2" Grid.Column="1" Text="{Binding Date, StringFormat='{}{0:MM/dd/yyyy hh:mm:ss tt}'}" />
+                                <Label Grid.Row="2" Grid.Column="1" Text="{Binding Date, StringFormat='{}{0:MM/dd/yyyy hh:mm tt}'}" />
                                 <Label Grid.Row="3" Grid.Column="0" Text="Category: " FontAttributes="Bold" />
                                 <Label Grid.Row="3" Grid.Column="1" Text="{Binding Category.Name}" />
                             </Grid>
@@ -88,6 +89,12 @@
 
                 <Label Text="Amount" />
                 <Entry Text="{Binding NewAmount}" Keyboard="Numeric" />
+
+                <Label Text="Date" />
+                <StackLayout>
+                    <DatePicker Date="{Binding SelectedDate, Mode=TwoWay}" />
+                    <TimePicker Time="{Binding SelectedTime, Mode=TwoWay}" />
+                </StackLayout>
 
                 <Label Text="Category" />
                 <Picker ItemsSource="{Binding Categories}"
