@@ -1,8 +1,8 @@
-﻿<?xml version="1.0" encoding="UTF-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:controls="clr-namespace:FinanceTracker.Mobile.Controls"
+             xmlns:viewModels="clr-namespace:FinanceTracker.Mobile.ViewModels"
              x:Class="FinanceTracker.Mobile.Views.MainPage"
              BackgroundColor="{StaticResource BackgroundColor}">
 
@@ -28,94 +28,93 @@
                 <Setter Property="BackgroundColor" Value="{StaticResource PickerBackgroundColor}" />
                 <Setter Property="Margin" Value="0,5,0,5" />
             </Style>
+            <Style TargetType="DatePicker">
+                <Setter Property="TextColor" Value="{StaticResource TextColor}" />
+                <Setter Property="BackgroundColor" Value="{StaticResource PickerBackgroundColor}" />
+                <Setter Property="Margin" Value="0,5,0,5" />
+            </Style>
+            <Style TargetType="TimePicker">
+                <Setter Property="TextColor" Value="{StaticResource TextColor}" />
+                <Setter Property="BackgroundColor" Value="{StaticResource PickerBackgroundColor}" />
+                <Setter Property="Margin" Value="0,5,0,5" />
+            </Style>
         </ResourceDictionary>
     </ContentPage.Resources>
 
     <ContentPage.Content>
-        <Grid Padding="10">
+        <Grid>
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
             <Button Text="Add New Transaction"
-                    Command="{Binding ToggleFormVisibilityCommand}"
-                    Grid.Row="0"
-                    HorizontalOptions="Center"
-                    VerticalOptions="Center" />
+                Command="{Binding ToggleFormVisibilityCommand}"
+                Grid.Row="0"
+                HorizontalOptions="Center"
+                VerticalOptions="Center"
+                Margin="10" />
 
             <CollectionView x:Name="TransactionsCollectionView"
                 ItemsSource="{Binding Transactions}"
-                SelectionMode="None"
-                Grid.Row="1"
-                Margin="10">
+                Grid.Row="2"
+                SelectionMode="None">
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
                         <SwipeView>
                             <SwipeView.RightItems>
                                 <SwipeItems>
                                     <SwipeItem Text="Edit"
-                                   BackgroundColor="{StaticResource SwipeItemBackgroundColor}"
-                                   Command="{Binding BindingContext.EditTransactionCommand, Source={x:Reference TransactionsCollectionView}}"
+                                   BackgroundColor="LightBlue"
+                                   Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:TransactionsViewModel}}, Path=EditTransactionCommand}"
+                                   CommandParameter="{Binding .}" />
+                                    <SwipeItem Text="Delete"
+                                   BackgroundColor="Red"
+                                   Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:TransactionsViewModel}}, Path=DeleteTransactionCommand}"
                                    CommandParameter="{Binding .}" />
                                 </SwipeItems>
                             </SwipeView.RightItems>
-                            <Grid Padding="10"
-                      BackgroundColor="{StaticResource BackgroundColor}"
-                      Margin="0,5,0,5"
-                      RowDefinitions="Auto,Auto,Auto,Auto"
-                      ColumnDefinitions="Auto,*">
-                                <Label Grid.Row="0" Grid.Column="0" Text="Description: " FontAttributes="Bold" />
-                                <Label Grid.Row="0" Grid.Column="1" Text="{Binding Description}" />
-                                <Label Grid.Row="1" Grid.Column="0" Text="Amount: " FontAttributes="Bold" />
-                                <Label Grid.Row="1" Grid.Column="1" Text="{Binding Amount, StringFormat='{}{0:C}'}" />
-                                <Label Grid.Row="2" Grid.Column="0" Text="Date: " FontAttributes="Bold" />
-                                <Label Grid.Row="2" Grid.Column="1" Text="{Binding Date, StringFormat='{}{0:MM/dd/yyyy hh:mm tt}'}" />
-                                <Label Grid.Row="3" Grid.Column="0" Text="Category: " FontAttributes="Bold" />
-                                <Label Grid.Row="3" Grid.Column="1" Text="{Binding Category.Name}" />
+                            <Grid Padding="10" BackgroundColor="White" Margin="0,5,0,5">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackLayout Grid.Column="0">
+                                    <Label Text="{Binding Description}" FontAttributes="Bold" />
+                                    <Label Text="{Binding Date, StringFormat='{}{0:MM/dd/yyyy hh:mm tt}'}" />
+                                    <Label Text="{Binding Category.Name}" />
+                                    <Label Text="{Binding Amount, StringFormat='{}{0:C}'}" />
+                                </StackLayout>
                             </Grid>
                         </SwipeView>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
 
-            <StackLayout x:Name="FormOverlay"
-                         Padding="10"
-                         BackgroundColor="White"
-                         Grid.RowSpan="2"
-                         IsVisible="{Binding IsFormVisible}">
-                <Label Text="Description" />
-                <Entry Text="{Binding NewDescription}" />
+            <ContentView IsVisible="{Binding IsFormVisible}" BackgroundColor="White" Grid.RowSpan="3">
+                <ScrollView>
+                    <StackLayout Padding="10">
+                        <Label Text="Description" />
+                        <Entry Placeholder="Description" Text="{Binding NewDescription}" />
 
-                <Label Text="Amount" />
-                <Entry Text="{Binding NewAmount}" Keyboard="Numeric" />
+                        <Label Text="Amount" />
+                        <Entry Placeholder="Amount" Text="{Binding NewAmount}" Keyboard="Numeric" />
 
-                <Label Text="Date" />
-                <StackLayout>
-                    <DatePicker Date="{Binding SelectedDate, Mode=TwoWay}" />
-                    <TimePicker Time="{Binding SelectedTime, Mode=TwoWay}" />
-                </StackLayout>
+                        <Label Text="Category" />
+                        <Picker ItemsSource="{Binding Categories}" ItemDisplayBinding="{Binding Name}" SelectedItem="{Binding SelectedCategory}" />
 
-                <Label Text="Category" />
-                <Picker ItemsSource="{Binding Categories}"
-                        ItemDisplayBinding="{Binding Name}"
-                        SelectedItem="{Binding SelectedCategory}"
-                        IsVisible="{Binding IsNewCategory, Converter={StaticResource InverseBooleanConverter}}" />
+                        <Label Text="Date" />
+                        <DatePicker Date="{Binding SelectedDate}" />
 
-                <Entry Text="{Binding NewCategory}"
-                       Placeholder="New Category"
-                       IsVisible="{Binding IsNewCategory}" />
+                        <Label Text="Time" />
+                        <TimePicker Time="{Binding SelectedTime}" />
 
-                <Grid ColumnDefinitions="Auto, *">
-                    <Switch IsToggled="{Binding IsNewCategory}" Grid.Column="0" />
-                    <Label Text="Add New Category" VerticalOptions="Center" Grid.Column="1" />
-                </Grid>
-
-                <HorizontalStackLayout Spacing="10">
-                    <Button Text="Add Transaction" Command="{Binding AddTransactionCommand}" HorizontalOptions="FillAndExpand" />
-                    <Button Text="Cancel" Command="{Binding ToggleFormVisibilityCommand}" HorizontalOptions="FillAndExpand" />
-                </HorizontalStackLayout>
-            </StackLayout>
+                        <Button Text="Save" Command="{Binding SaveTransactionCommand}" Margin="10" />
+                        <Button Text="Cancel" Command="{Binding CancelEditTransactionCommand}" Margin="10" />
+                    </StackLayout>
+                </ScrollView>
+            </ContentView>
         </Grid>
     </ContentPage.Content>
 </ContentPage>

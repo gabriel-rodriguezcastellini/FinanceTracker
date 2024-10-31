@@ -9,6 +9,7 @@ namespace FinanceTracker.Core.Services
         Task<IEnumerable<Transaction>> GetTransactionsAsync();
         Task AddTransactionAsync(Transaction transaction);
         Task UpdateTransactionAsync(Transaction transaction);
+        Task DeleteTransactionAsync(Transaction transaction);
     }
 
     public class TransactionService(ITransactionRepository repository, ILogger<TransactionService> logger) : ITransactionService
@@ -28,6 +29,12 @@ namespace FinanceTracker.Core.Services
         {
             logger.LogInformation("Updating transaction: {Transaction}", transaction);
             await repository.UpdateTransactionAsync(transaction);
+        }
+
+        public async Task DeleteTransactionAsync(Transaction transaction)
+        {
+            logger.LogInformation("Deleting transaction: {Transaction}", transaction);
+            await repository.DeleteTransactionAsync(transaction);
         }
     }
 }

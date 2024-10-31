@@ -8,14 +8,15 @@ using System.Windows.Input;
 
 namespace FinanceTracker.Mobile.ViewModels
 {
-    public partial class TransactionsViewModel : INotifyPropertyChanged
+    public class TransactionsViewModel : INotifyPropertyChanged
     {
         private readonly ITransactionService _transactionService;
         private readonly ICategoryService _categoryService;
         private readonly ExceptionLogger _exceptionLogger;
-        private ObservableCollection<Transaction> _transactions = [];
-        private ObservableCollection<Category> _categories = [];
+        private ObservableCollection<Transaction> _transactions;
+        private ObservableCollection<Category> _categories;
         private bool _isNewCategory;
+        private Transaction _selectedTransaction;
         private bool _isFormVisible;
         private DateTime? _selectedDate;
         private TimeSpan? _selectedTime;
@@ -55,6 +56,16 @@ namespace FinanceTracker.Mobile.ViewModels
             }
         }
 
+        public Transaction? SelectedTransaction
+        {
+            get => _selectedTransaction;
+            set
+            {
+                _selectedTransaction = value ?? new Transaction { Description = string.Empty };
+                OnPropertyChanged();
+            }
+        }
+
         public bool IsFormVisible
         {
             get => _isFormVisible;
@@ -86,33 +97,67 @@ namespace FinanceTracker.Mobile.ViewModels
         }
 
         public ICommand AddTransactionCommand { get; }
-
         public ICommand ToggleFormVisibilityCommand { get; }
-
         public ICommand EditTransactionCommand { get; }
+        public ICommand SaveTransactionCommand { get; }
+        public ICommand CancelEditTransactionCommand { get; }
+        public ICommand DeleteTransactionCommand { get; }
 
         public TransactionsViewModel(ITransactionService transactionService, ICategoryService categoryService, ExceptionLogger exceptionLogger)
         {
             _transactionService = transactionService;
             _categoryService = categoryService;
             _exceptionLogger = exceptionLogger;
+            _transactions = [];
+            _categories = [];
+            _selectedTransaction = new Transaction { Description = string.Empty };
             AddTransactionCommand = new Command(AddTransaction);
             EditTransactionCommand = new Command<Transaction>(EditTransaction);
+            DeleteTransactionCommand = new Command<Transaction>(DeleteTransaction);
             ToggleFormVisibilityCommand = new Command(ToggleFormVisibility);
+            SaveTransactionCommand = new Command(SaveTransaction);
+            CancelEditTransactionCommand = new Command(CancelEditTransaction);
             _ = LoadTransactions();
             _ = LoadCategories();
         }
 
+        private async void DeleteTransaction(Transaction transaction)
+        {
+            try
+            {
+                await _transactionService.DeleteTransactionAsync(transaction);
+                _ = Transactions.Remove(transaction);
+            }
+            catch (Exception ex)
+            {
+                _exceptionLogger.LogException(ex);
+            }
+        }
+
         private async Task LoadTransactions()
         {
-            IEnumerable<Transaction> transactions = await _transactionService.GetTransactionsAsync();
-            Transactions = new ObservableCollection<Transaction>(transactions);
+            try
+            {
+                IEnumerable<Transaction> transactions = await _transactionService.GetTransactionsAsync();
+                Transactions = new ObservableCollection<Transaction>(transactions.OrderByDescending(t => t.Date));
+            }
+            catch (Exception ex)
+            {
+                _exceptionLogger.LogException(ex);
+            }
         }
 
         private async Task LoadCategories()
         {
-            IEnumerable<Category> categories = await _categoryService.GetCategoriesAsync();
-            Categories = new ObservableCollection<Category>(categories);
+            try
+            {
+                IEnumerable<Category> categories = await _categoryService.GetCategoriesAsync();
+                Categories = new ObservableCollection<Category>(categories);
+            }
+            catch (Exception ex)
+            {
+                _exceptionLogger.LogException(ex);
+            }
         }
 
         private void ToggleFormVisibility()
@@ -124,74 +169,14 @@ namespace FinanceTracker.Mobile.ViewModels
 
         private async void AddTransaction()
         {
-            if (string.IsNullOrWhiteSpace(NewDescription))
-            {
-                if (Application.Current?.MainPage != null)
-                {
-                    await Application.Current.MainPage.DisplayAlert("Validation Error", "Description is required.", "OK");
-                }
-                return;
-            }
-
-            if (NewAmount <= 0)
-            {
-                if (Application.Current?.MainPage != null)
-                {
-                    await Application.Current.MainPage.DisplayAlert("Validation Error", "Amount must be greater than zero.", "OK");
-                }
-                return;
-            }
-
-            if (IsNewCategory && string.IsNullOrWhiteSpace(NewCategory))
-            {
-                if (Application.Current?.MainPage != null)
-                {
-                    await Application.Current.MainPage.DisplayAlert("Validation Error", "New category name is required.", "OK");
-                }
-                return;
-            }
-
-            if (!IsNewCategory && SelectedCategory == null)
-            {
-                if (Application.Current?.MainPage != null)
-                {
-                    await Application.Current.MainPage.DisplayAlert("Validation Error", "Category must be selected.", "OK");
-                }
-                return;
-            }
-
-            if (SelectedDate == null)
-            {
-                if (Application.Current?.MainPage != null)
-                {
-                    await Application.Current.MainPage.DisplayAlert("Validation Error", "Date is required.", "OK");
-                }
-                return;
-            }
-
-            if (SelectedTime == null)
-            {
-                if (Application.Current?.MainPage != null)
-                {
-                    await Application.Current.MainPage.DisplayAlert("Validation Error", "Time is required.", "OK");
-                }
-                return;
-            }
-
             try
             {
-                Category category = IsNewCategory
-                    ? await _categoryService.GetOrCreateCategoryAsync(NewCategory)
-                    : SelectedCategory ?? throw new InvalidOperationException("No category selected");
-
-                DateTime transactionDateTime = SelectedDate.Value.Date + SelectedTime.Value;
-
                 Transaction newTransaction = new()
                 {
                     Description = NewDescription,
                     Amount = NewAmount,
-                    Date = transactionDateTime,
-                    Category = category
+                    Date = SelectedDate ?? DateTime.Now,
+                    Category = SelectedCategory ?? throw new InvalidOperationException("Category cannot be null")
                 };
 
                 await _transactionService.AddTransactionAsync(newTransaction);
@@ -200,62 +185,75 @@ namespace FinanceTracker.Mobile.ViewModels
                 await LoadCategories();
 
                 TransactionAdded?.Invoke(this, newTransaction);
-
-                NewDescription = string.Empty;
-                NewAmount = 0;
-                NewCategory = string.Empty;
-                SelectedCategory = null;
-                IsNewCategory = false;
-                SelectedDate = null;
-                SelectedTime = null;
-                OnPropertyChanged(nameof(NewDescription));
-                OnPropertyChanged(nameof(NewAmount));
-                OnPropertyChanged(nameof(NewCategory));
-                OnPropertyChanged(nameof(SelectedCategory));
-                OnPropertyChanged(nameof(IsNewCategory));
-                OnPropertyChanged(nameof(SelectedDate));
-                OnPropertyChanged(nameof(SelectedTime));
-
-                IsFormVisible = false;
-            }
-            catch (InvalidOperationException ex)
-            {
-                _exceptionLogger.LogException(ex);
-                if (Application.Current?.MainPage != null)
-                {
-                    await Application.Current.MainPage.DisplayAlert("Error", ex.Message, "OK");
-                }
+                await LoadTransactions();
+                ClearForm();
             }
             catch (Exception ex)
             {
                 _exceptionLogger.LogException(ex);
-                if (Application.Current?.MainPage != null)
-                {
-                    await Application.Current.MainPage.DisplayAlert("Error", "An unexpected error occurred. Please try again.", "OK");
-                }
             }
         }
 
-        private async void EditTransaction(Transaction transaction)
+        private void EditTransaction(Transaction transaction)
         {
             try
             {
-                await _transactionService.UpdateTransactionAsync(transaction);
-                int index = Transactions.IndexOf(transaction);
-                if (index >= 0)
-                {
-                    Transactions[index] = transaction;
-                }
-                TransactionAdded?.Invoke(this, transaction);
+                SelectedTransaction = transaction;
+                NewDescription = transaction.Description;
+                NewAmount = transaction.Amount;
+                SelectedCategory = transaction.Category;
+                SelectedDate = transaction.Date;
+                SelectedTime = transaction.Date.TimeOfDay;
+                IsFormVisible = true;
+
+                OnPropertyChanged(nameof(NewDescription));
+                OnPropertyChanged(nameof(NewAmount));
+                OnPropertyChanged(nameof(SelectedCategory));
+                OnPropertyChanged(nameof(SelectedDate));
+                OnPropertyChanged(nameof(SelectedTime));
             }
             catch (Exception ex)
             {
                 _exceptionLogger.LogException(ex);
-                if (Application.Current?.MainPage != null)
+            }
+        }
+
+        private async void SaveTransaction()
+        {
+            try
+            {
+                if (SelectedTransaction != null)
                 {
-                    await Application.Current.MainPage.DisplayAlert("Error", "An unexpected error occurred. Please try again.", "OK");
+                    SelectedTransaction.Description = NewDescription;
+                    SelectedTransaction.Amount = NewAmount;
+                    SelectedTransaction.Date = (SelectedDate ?? DateTime.Now).Date + (SelectedTime ?? TimeSpan.Zero);
+                    SelectedTransaction.Category = SelectedCategory ?? throw new InvalidOperationException("Category cannot be null");
+
+                    await _transactionService.UpdateTransactionAsync(SelectedTransaction);
+                    await LoadTransactions();
+                    ClearForm();
                 }
             }
+            catch (Exception ex)
+            {
+                _exceptionLogger.LogException(ex);
+            }
+        }
+
+        private void CancelEditTransaction()
+        {
+            ClearForm();
+        }
+
+        private void ClearForm()
+        {
+            NewDescription = string.Empty;
+            NewAmount = 0;
+            SelectedCategory = null;
+            SelectedDate = null;
+            SelectedTime = null;
+            IsFormVisible = false;
+            SelectedTransaction = null;
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
