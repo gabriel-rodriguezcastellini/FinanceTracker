@@ -8,6 +8,8 @@ namespace FinanceTracker.Data.Repositories
         Task<IEnumerable<Category>> GetCategoriesAsync();
         Task<Category?> GetCategoryByNameAsync(string categoryName);
         Task AddCategoryAsync(Category newCategory);
+        Task DeleteCategoryAsync(Category category);
+        Task UpdateCategoryAsync(Category category);
     }
 
     public class CategoryRepository(FinanceTrackerDbContext context) : ICategoryRepository
@@ -25,6 +27,18 @@ namespace FinanceTracker.Data.Repositories
         public async Task AddCategoryAsync(Category newCategory)
         {
             _ = await context.Categories.AddAsync(newCategory);
+            _ = await context.SaveChangesAsync();
+        }
+
+        public async Task DeleteCategoryAsync(Category category)
+        {
+            _ = context.Categories.Remove(category);
+            _ = await context.SaveChangesAsync();
+        }
+
+        public async Task UpdateCategoryAsync(Category category)
+        {
+            _ = context.Categories.Update(category);
             _ = await context.SaveChangesAsync();
         }
     }

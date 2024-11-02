@@ -9,6 +9,8 @@ namespace FinanceTracker.Core.Services
         Task<Category?> GetCategoryByNameAsync(string categoryName);
         Task AddCategoryAsync(Category newCategory);
         Task<Category> GetOrCreateCategoryAsync(string newCategory);
+        Task DeleteCategoryAsync(Category category);
+        Task UpdateCategoryAsync(Category category);
     }
 
     public class CategoryService(ICategoryRepository categoryRepository) : ICategoryService
@@ -37,6 +39,16 @@ namespace FinanceTracker.Core.Services
                 await categoryRepository.AddCategoryAsync(category);
             }
             return category;
+        }
+
+        public async Task DeleteCategoryAsync(Category category)
+        {
+            await categoryRepository.DeleteCategoryAsync(category);
+        }
+
+        public async Task UpdateCategoryAsync(Category category)
+        {
+            await categoryRepository.UpdateCategoryAsync(category);
         }
     }
 }

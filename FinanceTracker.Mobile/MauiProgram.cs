@@ -37,6 +37,8 @@ namespace FinanceTracker.Mobile
             _ = builder.Services.AddTransient<ChartPage>();
             _ = builder.Services.AddSingleton<MainPage>();
             _ = builder.Services.AddSingleton<ExceptionLogger>();
+            _ = builder.Services.AddTransient<CategoriesViewModel>();
+            _ = builder.Services.AddTransient<CategoriesPage>();
 
             MauiApp app = builder.Build();
 
