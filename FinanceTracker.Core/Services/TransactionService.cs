@@ -7,6 +7,7 @@ namespace FinanceTracker.Core.Services
     public interface ITransactionService
     {
         Task<IEnumerable<Transaction>> GetTransactionsAsync();
+        Task<IEnumerable<Transaction>> GetTransactionsByDateRangeAsync(DateTime startDate, DateTime endDate);
         Task AddTransactionAsync(Transaction transaction);
         Task UpdateTransactionAsync(Transaction transaction);
         Task DeleteTransactionAsync(Transaction transaction);
@@ -17,6 +18,11 @@ namespace FinanceTracker.Core.Services
         public async Task<IEnumerable<Transaction>> GetTransactionsAsync()
         {
             return await repository.GetTransactionsAsync();
+        }
+
+        public async Task<IEnumerable<Transaction>> GetTransactionsByDateRangeAsync(DateTime startDate, DateTime endDate)
+        {
+            return await repository.GetTransactionsByDateRangeAsync(startDate, endDate);
         }
 
         public async Task AddTransactionAsync(Transaction transaction)

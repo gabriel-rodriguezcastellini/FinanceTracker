@@ -46,6 +46,7 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
@@ -56,9 +57,16 @@
                 VerticalOptions="Center"
                 Margin="10" />
 
+            <StackLayout Grid.Row="1" Orientation="Horizontal" HorizontalOptions="Center">
+                <DatePicker Date="{Binding StartDate}" />
+                <DatePicker Date="{Binding EndDate}" />
+                <Button Text="Filter" Command="{Binding FilterTransactionsCommand}" Margin="10,0" />
+                <Button Text="Clear Filters" Command="{Binding ClearFiltersCommand}" Margin="10,0" />
+            </StackLayout>
+
             <CollectionView x:Name="TransactionsCollectionView"
                 ItemsSource="{Binding Transactions}"
-                Grid.Row="2"
+                Grid.Row="3"
                 SelectionMode="None">
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
@@ -92,7 +100,7 @@
                 </CollectionView.ItemTemplate>
             </CollectionView>
 
-            <ContentView IsVisible="{Binding IsFormVisible}" BackgroundColor="White" Grid.RowSpan="3">
+            <ContentView IsVisible="{Binding IsFormVisible}" BackgroundColor="White" Grid.RowSpan="4">
                 <ScrollView>
                     <StackLayout Padding="10">
                         <Label Text="Description" />

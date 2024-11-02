@@ -20,6 +20,8 @@ namespace FinanceTracker.Mobile.ViewModels
         private bool _isFormVisible;
         private DateTime? _selectedDate;
         private TimeSpan? _selectedTime;
+        private DateTime _startDate;
+        private DateTime _endDate;
 
         public ObservableCollection<Transaction> Transactions
         {
@@ -96,12 +98,34 @@ namespace FinanceTracker.Mobile.ViewModels
             }
         }
 
+        public DateTime StartDate
+        {
+            get => _startDate;
+            set
+            {
+                _startDate = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public DateTime EndDate
+        {
+            get => _endDate;
+            set
+            {
+                _endDate = value;
+                OnPropertyChanged();
+            }
+        }
+
         public ICommand AddTransactionCommand { get; }
         public ICommand ToggleFormVisibilityCommand { get; }
         public ICommand EditTransactionCommand { get; }
         public ICommand SaveTransactionCommand { get; }
         public ICommand CancelEditTransactionCommand { get; }
         public ICommand DeleteTransactionCommand { get; }
+        public ICommand FilterTransactionsCommand { get; }
+        public ICommand ClearFiltersCommand { get; }
 
         public TransactionsViewModel(ITransactionService transactionService, ICategoryService categoryService, ExceptionLogger exceptionLogger)
         {
@@ -110,6 +134,10 @@ namespace FinanceTracker.Mobile.ViewModels
             _exceptionLogger = exceptionLogger;
             _transactions = [];
             _categories = [];
+
+            StartDate = DateTime.Now;
+            EndDate = DateTime.Now;
+
             _selectedTransaction = new Transaction { Description = string.Empty };
             AddTransactionCommand = new Command(AddTransaction);
             EditTransactionCommand = new Command<Transaction>(EditTransaction);
@@ -117,8 +145,31 @@ namespace FinanceTracker.Mobile.ViewModels
             ToggleFormVisibilityCommand = new Command(ToggleFormVisibility);
             SaveTransactionCommand = new Command(SaveTransaction);
             CancelEditTransactionCommand = new Command(CancelEditTransaction);
+            FilterTransactionsCommand = new Command(FilterTransactions);
+            ClearFiltersCommand = new Command(ClearFilters);
+
             _ = LoadTransactions();
             _ = LoadCategories();
+        }
+
+        private void ClearFilters()
+        {
+            StartDate = Transactions.Min(t => t.Date);
+            EndDate = Transactions.Max(t => t.Date);
+            _ = LoadTransactions();
+        }
+
+        private async void FilterTransactions()
+        {
+            try
+            {
+                IEnumerable<Transaction> transactions = await _transactionService.GetTransactionsByDateRangeAsync(StartDate, EndDate);
+                Transactions = new ObservableCollection<Transaction>(transactions.OrderByDescending(t => t.Date));
+            }
+            catch (Exception ex)
+            {
+                _exceptionLogger.LogException(ex);
+            }
         }
 
         private async void DeleteTransaction(Transaction transaction)
@@ -140,6 +191,12 @@ namespace FinanceTracker.Mobile.ViewModels
             {
                 IEnumerable<Transaction> transactions = await _transactionService.GetTransactionsAsync();
                 Transactions = new ObservableCollection<Transaction>(transactions.OrderByDescending(t => t.Date));
+
+                if (Transactions.Any())
+                {
+                    StartDate = Transactions.Min(t => t.Date);
+                    EndDate = Transactions.Max(t => t.Date);
+                }
             }
             catch (Exception ex)
             {

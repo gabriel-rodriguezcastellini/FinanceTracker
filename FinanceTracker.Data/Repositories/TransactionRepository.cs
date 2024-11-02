@@ -6,6 +6,7 @@ namespace FinanceTracker.Data.Repositories
     public interface ITransactionRepository
     {
         Task<IEnumerable<Transaction>> GetTransactionsAsync();
+        Task<IEnumerable<Transaction>> GetTransactionsByDateRangeAsync(DateTime startDate, DateTime endDate);
         Task AddTransactionAsync(Transaction transaction);
         Task UpdateTransactionAsync(Transaction transaction);
         Task DeleteTransactionAsync(Transaction transaction);
@@ -16,6 +17,14 @@ namespace FinanceTracker.Data.Repositories
         public async Task<IEnumerable<Transaction>> GetTransactionsAsync()
         {
             List<Transaction> transactions = await context.Transactions.ToListAsync();
+            return transactions.OrderByDescending(t => t.Date);
+        }
+
+        public async Task<IEnumerable<Transaction>> GetTransactionsByDateRangeAsync(DateTime startDate, DateTime endDate)
+        {
+            List<Transaction> transactions = await context.Transactions
+                .Where(t => t.Date >= startDate && t.Date <= endDate)
+                .ToListAsync();
             return transactions.OrderByDescending(t => t.Date);
         }
 
