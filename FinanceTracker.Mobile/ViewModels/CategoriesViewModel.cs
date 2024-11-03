@@ -53,22 +53,21 @@ namespace FinanceTracker.Mobile.ViewModels
             }
         }
 
+        public event EventHandler<Category>? CategoryAdded;
+
         private async void AddCategory()
         {
             try
             {
-                string categoryName = await (Application.Current?.MainPage?.DisplayPromptAsync("New Category", "Enter the name of the new category:") ?? Task.FromResult(string.Empty));
+                string newCategoryName = await (Application.Current?.MainPage?.DisplayPromptAsync("New Category", "Enter the name for the new category:") ?? Task.FromResult(string.Empty));
 
-                if (!string.IsNullOrWhiteSpace(categoryName))
+                if (!string.IsNullOrWhiteSpace(newCategoryName))
                 {
-                    Category newCategory = new()
-                    {
-                        Name = categoryName
-                    };
-
+                    Category newCategory = new() { Name = newCategoryName };
                     await _categoryService.AddCategoryAsync(newCategory);
-
                     Categories.Add(newCategory);
+
+                    CategoryAdded?.Invoke(this, newCategory);
                 }
             }
             catch (Exception ex)

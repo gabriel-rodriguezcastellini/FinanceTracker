@@ -57,7 +57,8 @@ namespace FinanceTracker.Mobile.ViewModels
             {
                 Entries = entries,
                 LabelTextSize = 30,
-                Margin = 20
+                Margin = 20,
+                LabelMode = LabelMode.RightOnly
             };
         }
 
