@@ -126,6 +126,7 @@ namespace FinanceTracker.Mobile.ViewModels
         public ICommand DeleteTransactionCommand { get; }
         public ICommand FilterTransactionsCommand { get; }
         public ICommand ClearFiltersCommand { get; }
+        public ICommand OpenFormAddTransactionCommand { get; }
 
         public TransactionsViewModel(ITransactionService transactionService, ICategoryService categoryService, ExceptionLogger exceptionLogger)
         {
@@ -143,6 +144,7 @@ namespace FinanceTracker.Mobile.ViewModels
             EditTransactionCommand = new Command<Transaction>(EditTransaction);
             DeleteTransactionCommand = new Command<Transaction>(DeleteTransaction);
             ToggleFormVisibilityCommand = new Command(ToggleFormVisibility);
+            OpenFormAddTransactionCommand = new Command(OpenFormAddTransaction);
             SaveTransactionCommand = new Command(SaveTransaction);
             CancelEditTransactionCommand = new Command(CancelEditTransaction);
             FilterTransactionsCommand = new Command(FilterTransactions);
@@ -215,6 +217,13 @@ namespace FinanceTracker.Mobile.ViewModels
             {
                 _exceptionLogger.LogException(ex);
             }
+        }
+
+        private async void OpenFormAddTransaction()
+        {
+            await LoadCategories();
+            ClearForm();
+            IsFormVisible = true;
         }
 
         private void ToggleFormVisibility()
@@ -306,11 +315,19 @@ namespace FinanceTracker.Mobile.ViewModels
         {
             NewDescription = string.Empty;
             NewAmount = 0;
+            NewCategory = string.Empty;
             SelectedCategory = null;
             SelectedDate = null;
             SelectedTime = null;
             IsFormVisible = false;
             SelectedTransaction = null;
+
+            OnPropertyChanged(nameof(NewDescription));
+            OnPropertyChanged(nameof(NewAmount));
+            OnPropertyChanged(nameof(NewCategory));
+            OnPropertyChanged(nameof(SelectedCategory));
+            OnPropertyChanged(nameof(SelectedDate));
+            OnPropertyChanged(nameof(SelectedTime));
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;

@@ -68,6 +68,7 @@ namespace FinanceTracker.Mobile.ViewModels
                     Categories.Add(newCategory);
 
                     CategoryAdded?.Invoke(this, newCategory);
+                    await LoadCategories();
                 }
             }
             catch (Exception ex)

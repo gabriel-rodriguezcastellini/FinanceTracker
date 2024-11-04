@@ -51,7 +51,7 @@
             </Grid.RowDefinitions>
 
             <Button Text="Add New Transaction"
-                Command="{Binding ToggleFormVisibilityCommand}"
+                Command="{Binding OpenFormAddTransactionCommand}"
                 Grid.Row="0"
                 HorizontalOptions="Center"
                 VerticalOptions="Center"
