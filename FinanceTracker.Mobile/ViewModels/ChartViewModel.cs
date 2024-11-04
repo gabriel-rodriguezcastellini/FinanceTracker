@@ -62,6 +62,57 @@ namespace FinanceTracker.Mobile.ViewModels
             };
         }
 
+        public Task<Stream?> CaptureChartAsImageAsync()
+        {
+            if (Chart is PieChart pieChart)
+            {
+                int width = 600;
+                int height = 600;
+                using SKBitmap bitmap = new(width, height);
+                using SKCanvas canvas = new(bitmap);
+                canvas.Clear(SKColors.White);
+
+                pieChart.Draw(canvas, width, height);
+
+                SKImage image = SKImage.FromBitmap(bitmap);
+                SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
+
+                return Task.FromResult<Stream?>(data.AsStream());
+            }
+
+            return Task.FromResult<Stream?>(null);
+        }
+
+        public async Task<string?> SaveChartImageToFileAsync()
+        {
+            Stream? stream = await CaptureChartAsImageAsync();
+            if (stream == null)
+            {
+                return null;
+            }
+
+            string tempFilePath = Path.Combine(FileSystem.CacheDirectory, "chart.png");
+            using FileStream fileStream = File.Create(tempFilePath);
+            await stream.CopyToAsync(fileStream);
+
+            return tempFilePath;
+        }
+
+        public async Task ShareChartImageAsync()
+        {
+            string? filePath = await SaveChartImageToFileAsync();
+            if (filePath == null)
+            {
+                return;
+            }
+
+            await Share.RequestAsync(new ShareFileRequest
+            {
+                Title = "Share Chart",
+                File = new ShareFile(filePath)
+            });
+        }
+
         private static SKColor GenerateColor(string categoryName)
         {
             int hash = categoryName.GetHashCode();

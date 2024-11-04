@@ -6,7 +6,7 @@ namespace FinanceTracker.Mobile.Views
     {
         private readonly ChartViewModel _viewModel;
 
-        public ChartPage(ChartViewModel viewModel)
+        public ChartPage()
         {
             InitializeComponent();
             if (App.TransactionRepository == null)
@@ -15,6 +15,15 @@ namespace FinanceTracker.Mobile.Views
             }
             _viewModel = new ChartViewModel(App.TransactionRepository);
             BindingContext = _viewModel;
+
+            Button shareButton = new()
+            {
+                Text = "Share Chart"
+            };
+            shareButton.Clicked += async (sender, args) => await _viewModel.ShareChartImageAsync();
+
+            StackLayout stackLayout = (StackLayout)Content;
+            stackLayout.Children.Add(shareButton);
         }
 
         protected override async void OnAppearing()

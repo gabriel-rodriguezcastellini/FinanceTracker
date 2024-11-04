@@ -11,6 +11,7 @@ namespace FinanceTracker.Mobile.ViewModels
     public class CategoriesViewModel : INotifyPropertyChanged
     {
         private readonly ICategoryService _categoryService;
+        private readonly ITransactionService _transactionService;
         private readonly ExceptionLogger _exceptionLogger;
         private ObservableCollection<Category> _categories = [];
 
@@ -28,9 +29,10 @@ namespace FinanceTracker.Mobile.ViewModels
         public ICommand EditCategoryCommand { get; }
         public ICommand DeleteCategoryCommand { get; }
 
-        public CategoriesViewModel(ICategoryService categoryService, ExceptionLogger exceptionLogger)
+        public CategoriesViewModel(ICategoryService categoryService, ITransactionService transactionService, ExceptionLogger exceptionLogger)
         {
             _categoryService = categoryService;
+            _transactionService = transactionService;
             _exceptionLogger = exceptionLogger;
 
             AddCategoryCommand = new Command(AddCategory);
@@ -105,8 +107,23 @@ namespace FinanceTracker.Mobile.ViewModels
         {
             try
             {
-                await _categoryService.DeleteCategoryAsync(category);
-                _ = Categories.Remove(category);
+                bool isConfirmed = await (Application.Current?.MainPage?.DisplayAlert("Delete Category", $"Are you sure you want to delete the category '{category.Name}'? All associated transactions will also be deleted.", "Yes", "No") ?? Task.FromResult(false));
+
+                if (isConfirmed)
+                {
+                    IEnumerable<Transaction> transactionsToDelete = await _transactionService.GetTransactionsByCategoryAsync(category.Id);
+                    foreach (Transaction transaction in transactionsToDelete)
+                    {
+                        await _transactionService.DeleteTransactionAsync(transaction);
+                    }
+
+                    await _categoryService.DeleteCategoryAsync(category);
+                    _ = Categories.Remove(category);
+
+                    await (Application.Current?.MainPage?.DisplayAlert("Category Deleted", $"The category '{category.Name}' and all its associated transactions have been deleted.", "OK") ?? Task.CompletedTask);
+
+                    await LoadCategories();
+                }
             }
             catch (Exception ex)
             {
