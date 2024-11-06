@@ -156,8 +156,16 @@ namespace FinanceTracker.Mobile.ViewModels
 
         private void ClearFilters()
         {
-            StartDate = Transactions.Min(t => t.Date);
-            EndDate = Transactions.Max(t => t.Date);
+            if (Transactions.Any())
+            {
+                StartDate = Transactions.Min(t => t.Date);
+                EndDate = Transactions.Max(t => t.Date);
+            }
+            else
+            {
+                StartDate = DateTime.Now;
+                EndDate = DateTime.Now;
+            }
             _ = LoadTransactions();
         }
 
