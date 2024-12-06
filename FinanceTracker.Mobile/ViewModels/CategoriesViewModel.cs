@@ -1,4 +1,5 @@
-﻿using FinanceTracker.Core;
+﻿using CommunityToolkit.Mvvm.Messaging;
+using FinanceTracker.Core;
 using FinanceTracker.Core.Services;
 using FinanceTracker.Shared.Models;
 using System.Collections.ObjectModel;
@@ -71,6 +72,7 @@ namespace FinanceTracker.Mobile.ViewModels
 
                     CategoryAdded?.Invoke(this, newCategory);
                     await LoadCategories();
+                    _ = WeakReferenceMessenger.Default.Send(new CategoryAddedMessage());
                 }
             }
             catch (Exception ex)
@@ -111,7 +113,7 @@ namespace FinanceTracker.Mobile.ViewModels
 
                 if (isConfirmed)
                 {
-                    IEnumerable<Transaction> transactionsToDelete = await _transactionService.GetTransactionsByCategoryAsync(category.Id);
+                    IEnumerable<Transaction> transactionsToDelete = _transactionService.GetTransactionsByCategory(category.Id);
                     foreach (Transaction transaction in transactionsToDelete)
                     {
                         await _transactionService.DeleteTransactionAsync(transaction);
@@ -119,6 +121,7 @@ namespace FinanceTracker.Mobile.ViewModels
 
                     await _categoryService.DeleteCategoryAsync(category);
                     _ = Categories.Remove(category);
+                    _ = WeakReferenceMessenger.Default.Send(new CategoryDeletedMessage(category));
 
                     await (Application.Current?.MainPage?.DisplayAlert("Category Deleted", $"The category '{category.Name}' and all its associated transactions have been deleted.", "OK") ?? Task.CompletedTask);
 
@@ -138,4 +141,8 @@ namespace FinanceTracker.Mobile.ViewModels
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
+
+    public record CategoryDeletedMessage(Category Category);
+
+    public record CategoryAddedMessage();
 }

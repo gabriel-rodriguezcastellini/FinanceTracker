@@ -11,7 +11,7 @@ namespace FinanceTracker.Core.Services
         Task AddTransactionAsync(Transaction transaction);
         Task UpdateTransactionAsync(Transaction transaction);
         Task DeleteTransactionAsync(Transaction transaction);
-        Task<IEnumerable<Transaction>> GetTransactionsByCategoryAsync(int id);
+        IEnumerable<Transaction> GetTransactionsByCategory(int id);
     }
 
     public class TransactionService(ITransactionRepository repository, ILogger<TransactionService> logger) : ITransactionService
@@ -44,9 +44,9 @@ namespace FinanceTracker.Core.Services
             await repository.DeleteTransactionAsync(transaction);
         }
 
-        public async Task<IEnumerable<Transaction>> GetTransactionsByCategoryAsync(int id)
+        public IEnumerable<Transaction> GetTransactionsByCategory(int id)
         {
-            return await repository.GetTransactionsByCategoryAsync(id);
+            return repository.GetTransactionsByCategory(id);
         }
     }
 }

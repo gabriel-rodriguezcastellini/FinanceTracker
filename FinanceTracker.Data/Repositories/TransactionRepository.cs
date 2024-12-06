@@ -10,7 +10,7 @@ namespace FinanceTracker.Data.Repositories
         Task AddTransactionAsync(Transaction transaction);
         Task UpdateTransactionAsync(Transaction transaction);
         Task DeleteTransactionAsync(Transaction transaction);
-        Task<IEnumerable<Transaction>> GetTransactionsByCategoryAsync(int id);
+        IEnumerable<Transaction> GetTransactionsByCategory(int id);
     }
 
     public class TransactionRepository(FinanceTrackerDbContext context) : ITransactionRepository
@@ -43,16 +43,21 @@ namespace FinanceTracker.Data.Repositories
 
         public async Task DeleteTransactionAsync(Transaction transaction)
         {
-            _ = context.Transactions.Remove(transaction);
-            _ = await context.SaveChangesAsync();
+            Transaction? existingTransaction = await context.Transactions.FindAsync(transaction.Id);
+            if (existingTransaction != null)
+            {
+                _ = context.Transactions.Remove(existingTransaction);
+                _ = await context.SaveChangesAsync();
+            }
         }
 
-        public async Task<IEnumerable<Transaction>> GetTransactionsByCategoryAsync(int id)
+        public IEnumerable<Transaction> GetTransactionsByCategory(int id)
         {
-            List<Transaction> transactions = await context.Transactions
-                .Where(t => t.CategoryId == id)
-                .ToListAsync();
-            return transactions.OrderByDescending(t => t.Date);
+            return context.Transactions
+                                .AsNoTracking()
+                                .AsEnumerable()
+                                .Where(t => t.CategoryId == id)
+                                .ToList();
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using FinanceTracker.Core;
+﻿using CommunityToolkit.Mvvm.Messaging;
+using FinanceTracker.Core;
 using FinanceTracker.Core.Services;
 using FinanceTracker.Shared.Models;
 using System.Collections.ObjectModel;
@@ -18,8 +19,8 @@ namespace FinanceTracker.Mobile.ViewModels
         private bool _isNewCategory;
         private Transaction _selectedTransaction;
         private bool _isFormVisible;
-        private DateTime? _selectedDate;
-        private TimeSpan? _selectedTime;
+        private DateTime? _selectedDate = DateTime.Now;
+        private TimeSpan? _selectedTime = TimeSpan.Zero;
         private DateTime _startDate;
         private DateTime _endDate;
 
@@ -63,8 +64,23 @@ namespace FinanceTracker.Mobile.ViewModels
             get => _selectedTransaction;
             set
             {
-                _selectedTransaction = value ?? new Transaction { Description = string.Empty };
+                _selectedTransaction = value!;
+                if (_selectedTransaction != null)
+                {
+                    NewDescription = _selectedTransaction.Description;
+                    NewAmount = _selectedTransaction.Amount;
+                    NewCategory = _selectedTransaction.Category?.Name ?? string.Empty;
+                    SelectedCategory = _selectedTransaction.Category;
+                    SelectedDate = _selectedTransaction.Date;
+                    SelectedTime = _selectedTransaction.Date.TimeOfDay;
+                }
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(NewDescription));
+                OnPropertyChanged(nameof(NewAmount));
+                OnPropertyChanged(nameof(NewCategory));
+                OnPropertyChanged(nameof(SelectedCategory));
+                OnPropertyChanged(nameof(SelectedDate));
+                OnPropertyChanged(nameof(SelectedTime));
             }
         }
 
@@ -118,7 +134,6 @@ namespace FinanceTracker.Mobile.ViewModels
             }
         }
 
-        public ICommand AddTransactionCommand { get; }
         public ICommand ToggleFormVisibilityCommand { get; }
         public ICommand EditTransactionCommand { get; }
         public ICommand SaveTransactionCommand { get; }
@@ -133,14 +148,14 @@ namespace FinanceTracker.Mobile.ViewModels
             _transactionService = transactionService;
             _categoryService = categoryService;
             _exceptionLogger = exceptionLogger;
+
+            WeakReferenceMessenger.Default.Register<CategoryDeletedMessage>(this, (_, m) => OnCategoryDeleted(m.Category));
+            WeakReferenceMessenger.Default.Register<CategoryAddedMessage>(this, (_, _) => OnCategoryAdded());
+
             _transactions = [];
             _categories = [];
-
-            StartDate = DateTime.Now;
-            EndDate = DateTime.Now;
-
             _selectedTransaction = new Transaction { Description = string.Empty };
-            AddTransactionCommand = new Command(AddTransaction);
+
             EditTransactionCommand = new Command<Transaction>(EditTransaction);
             DeleteTransactionCommand = new Command<Transaction>(DeleteTransaction);
             ToggleFormVisibilityCommand = new Command(ToggleFormVisibility);
@@ -152,6 +167,17 @@ namespace FinanceTracker.Mobile.ViewModels
 
             _ = LoadTransactions();
             _ = LoadCategories();
+        }
+
+        private async void OnCategoryAdded()
+        {
+            await LoadCategories();
+        }
+
+        private async void OnCategoryDeleted(Category _)
+        {
+            await LoadCategories();
+            await LoadTransactions();
         }
 
         private void ClearFilters()
@@ -229,37 +255,16 @@ namespace FinanceTracker.Mobile.ViewModels
 
         private async void OpenFormAddTransaction()
         {
-            await LoadCategories();
-            ClearForm();
-            IsFormVisible = true;
-        }
-
-        private void ToggleFormVisibility()
-        {
-            IsFormVisible = !IsFormVisible;
-        }
-
-        public event EventHandler<Transaction>? TransactionAdded;
-
-        private async void AddTransaction()
-        {
             try
             {
-                Transaction newTransaction = new()
+                if (!Categories.Any())
                 {
-                    Description = NewDescription,
-                    Amount = NewAmount,
-                    Date = SelectedDate ?? DateTime.Now,
-                    Category = SelectedCategory ?? throw new InvalidOperationException("Category cannot be null")
-                };
+                    await (Application.Current?.MainPage?.DisplayAlert("Warning", "Please, add a new category first.", "OK") ?? Task.CompletedTask);
+                    return;
+                }
 
-                await _transactionService.AddTransactionAsync(newTransaction);
-                Transactions.Insert(0, newTransaction);
+                IsFormVisible = true;
 
-                await LoadCategories();
-
-                TransactionAdded?.Invoke(this, newTransaction);
-                await LoadTransactions();
                 ClearForm();
             }
             catch (Exception ex)
@@ -272,19 +277,9 @@ namespace FinanceTracker.Mobile.ViewModels
         {
             try
             {
+                ClearForm();
                 SelectedTransaction = transaction;
-                NewDescription = transaction.Description;
-                NewAmount = transaction.Amount;
-                SelectedCategory = transaction.Category;
-                SelectedDate = transaction.Date;
-                SelectedTime = transaction.Date.TimeOfDay;
                 IsFormVisible = true;
-
-                OnPropertyChanged(nameof(NewDescription));
-                OnPropertyChanged(nameof(NewAmount));
-                OnPropertyChanged(nameof(SelectedCategory));
-                OnPropertyChanged(nameof(SelectedDate));
-                OnPropertyChanged(nameof(SelectedTime));
             }
             catch (Exception ex)
             {
@@ -296,17 +291,34 @@ namespace FinanceTracker.Mobile.ViewModels
         {
             try
             {
-                if (SelectedTransaction != null)
+                if (SelectedTransaction == null)
+                {
+                    Transaction newTransaction = new()
+                    {
+                        Description = NewDescription,
+                        Amount = NewAmount,
+                        Date = (SelectedDate ?? DateTime.Now).Date + (SelectedTime ?? TimeSpan.Zero),
+                        Category = SelectedCategory ?? throw new InvalidOperationException("Category cannot be null"),
+                        CategoryId = SelectedCategory.Id
+                    };
+
+                    await _transactionService.AddTransactionAsync(newTransaction);
+                    Transactions.Add(newTransaction);
+                }
+                else
                 {
                     SelectedTransaction.Description = NewDescription;
                     SelectedTransaction.Amount = NewAmount;
                     SelectedTransaction.Date = (SelectedDate ?? DateTime.Now).Date + (SelectedTime ?? TimeSpan.Zero);
                     SelectedTransaction.Category = SelectedCategory ?? throw new InvalidOperationException("Category cannot be null");
+                    SelectedTransaction.CategoryId = SelectedCategory.Id;
 
                     await _transactionService.UpdateTransactionAsync(SelectedTransaction);
-                    await LoadTransactions();
-                    ClearForm();
                 }
+
+                IsFormVisible = false;
+                ClearForm();
+                await LoadTransactions();
             }
             catch (Exception ex)
             {
@@ -316,6 +328,7 @@ namespace FinanceTracker.Mobile.ViewModels
 
         private void CancelEditTransaction()
         {
+            IsFormVisible = false;
             ClearForm();
         }
 
@@ -325,9 +338,8 @@ namespace FinanceTracker.Mobile.ViewModels
             NewAmount = 0;
             NewCategory = string.Empty;
             SelectedCategory = null;
-            SelectedDate = null;
-            SelectedTime = null;
-            IsFormVisible = false;
+            SelectedDate = DateTime.Now;
+            SelectedTime = TimeSpan.Zero;
             SelectedTransaction = null;
 
             OnPropertyChanged(nameof(NewDescription));
@@ -336,6 +348,7 @@ namespace FinanceTracker.Mobile.ViewModels
             OnPropertyChanged(nameof(SelectedCategory));
             OnPropertyChanged(nameof(SelectedDate));
             OnPropertyChanged(nameof(SelectedTime));
+            OnPropertyChanged(nameof(IsFormVisible));
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -343,6 +356,11 @@ namespace FinanceTracker.Mobile.ViewModels
         protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        private void ToggleFormVisibility()
+        {
+            IsFormVisible = !IsFormVisible;
         }
     }
 }
